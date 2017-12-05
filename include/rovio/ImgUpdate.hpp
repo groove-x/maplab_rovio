@@ -416,7 +416,7 @@ ImgOutlierDetection<typename FILTERSTATE::mtState>,false>{
    *  @param state        - Filter %State.
    *  @param noise        - Additive discrete Gaussian noise.
    */
-  void evalInnovation(mtInnovation& y, const mtState& state, const mtNoise& noise) const{
+  bool evalInnovation(mtInnovation& y, const mtState& state, const mtNoise& noise) const{
     const int& ID = state.aux().activeFeature_;
     const int& camID = state.CfP(ID).camID_;
     const int activeCamID = (state.aux().activeCameraCounter_ + camID)%mtState::nCam_;
@@ -450,6 +450,7 @@ ImgOutlierDetection<typename FILTERSTATE::mtState>,false>{
       pixError(1) = static_cast<double>(state.aux().feaCoorMeas_[ID].get_c().y - featureOutput_.c().get_c().y);
       y.template get<mtInnovation::_pix>() = pixError+noise.template get<mtNoise::_pix>();
     }
+    return true;
   }
 
   bool generateCandidates(const mtFilterState& filterState, mtState& candidate) const{
