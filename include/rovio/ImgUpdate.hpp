@@ -467,11 +467,11 @@ ImgOutlierDetection<typename FILTERSTATE::mtState>,false>{
 
       CHECK_GE(camID, 0);
       CHECK_GE(activeCamID, 0);
+      CHECK_LT(camID, 2);
 
       transformFeatureOutputCT_.setFeatureID(ID);
       transformFeatureOutputCT_.setOutputCameraID(activeCamID);
       transformFeatureOutputCT_.transformState(candidate,featureOutput_);
-      candidate.CfP(ID).camID_ = 0;
       transformFeatureOutputCT_.jacTransform(featureOutputJac_,candidate);
       mpMultiCamera_->cameras_[activeCamID].bearingToPixel(featureOutput_.c().get_nor(),c_temp_,c_J_);
 
@@ -641,6 +641,8 @@ ImgOutlierDetection<typename FILTERSTATE::mtState>,false>{
         if(filterState.fsm_.isValid_[i]){
           // TODO(dymczykm) This camID seems to be uninitialized.
           //const int& camID = filterState.state_.CfP(i).camID_;   // Camera ID of the feature.
+          CHECK_GE(filterState.state_.CfP(i).camID_, 0);
+          CHECK_LT(filterState.state_.CfP(i).camID_, 2);
           const int camID = 0;
 
           tempCoordinates_ = *filterState.fsm_.features_[i].mpCoordinates_;
@@ -724,7 +726,8 @@ ImgOutlierDetection<typename FILTERSTATE::mtState>,false>{
         // Get coordinates in target frame
         transformFeatureOutputCT_.setFeatureID(ID);
         transformFeatureOutputCT_.setOutputCameraID(activeCamID);
-        state.CfP(ID).mpCamera_ = &(mpMultiCamera_->cameras_[0]);
+        CHECK_NOTNULL(state.CfP(ID).mpCamera_); // = &(mpMultiCamera_->cameras_[0]);
+        CHECK_GE(state.CfP(ID).camID_, 0);
         transformFeatureOutputCT_.transformState(state,featureOutput_);
         transformFeatureOutputCT_.transformCovMat(state,cov,featureOutputCov_);
         if(verbose_) std::cout << "    Normal in camera frame: " << featureOutput_.c().get_nor().getVec().transpose() << std::endl;
@@ -850,7 +853,9 @@ ImgOutlierDetection<typename FILTERSTATE::mtState>,false>{
         // Update status and visualization
         transformFeatureOutputCT_.setFeatureID(ID);
         transformFeatureOutputCT_.setOutputCameraID(activeCamID);
-        filterState.state_.CfP(ID).mpCamera_ = &(mpMultiCamera_->cameras_[0]);
+        //filterState.state_.CfP(ID).mpCamera_ = &(mpMultiCamera_->cameras_[0]);
+        CHECK_NOTNULL(filterState.state_.CfP(ID).mpCamera_);
+        CHECK_GE(filterState.state_.CfP(ID).camID_, 0);
         transformFeatureOutputCT_.transformState(filterState.state_,featureOutput_);
 
         // Draw information ellipse
@@ -1039,7 +1044,7 @@ ImgOutlierDetection<typename FILTERSTATE::mtState>,false>{
           meas.aux().pyr_[camID].detectFastCorners(candidates_,l,fastDetectionThreshold_);
         }
 
-        for (auto& candidate : candidates_) {
+        for (FeatureCoordinates& candidate : candidates_) {
           candidate.camID_ = camID;
           candidate.mpCamera_ = CHECK_NOTNULL(&mpMultiCamera_->cameras_[camID]);
         }
