@@ -107,6 +107,8 @@ struct RovioState {
   virtual bool hasPatchState() const = 0;
   virtual const RovioPatchState &getPatchState() const = 0;
 
+  virtual const cv::Mat &getImage() const = 0;
+
   // Optional: Feature state.
   bool hasFeatureUpdate = false;
   std::unique_ptr<RovioFeatureState> feature_state;

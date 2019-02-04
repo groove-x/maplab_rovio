@@ -217,6 +217,8 @@ template <typename FILTER> struct RovioStateImpl : public RovioState {
     return *patch_state;
   }
 
+  const cv::Mat &getImage() const { return trackerImage; }
+
   // If the filter isn't initialized, the state variables do not contain any
   // meaningful data.
   bool isInitialized = false;
@@ -269,6 +271,9 @@ template <typename FILTER> struct RovioStateImpl : public RovioState {
   // Optional: Path state.
   bool hasPatchUpdate = false;
   std::unique_ptr<RovioPatchState> patch_state;
+
+  // Optional: Tracker Image
+  cv::Mat trackerImage;
 };
 
 } // namespace rovio

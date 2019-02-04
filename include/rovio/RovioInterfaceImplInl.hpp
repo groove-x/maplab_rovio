@@ -502,6 +502,15 @@ bool RovioInterfaceImpl<FILTER>::getState(const bool get_feature_update,
     }
   }
 
+  // Update image
+  //for (int i = 0; i < mtState::nCam_; i++) {
+  for (int i = 0; i < 1; i++) {
+    if (!mpFilter_->safe_.img_[i].empty() &&
+        mpImgUpdate_->doFramePublish_) {
+      filter_update->trackerImage = mpFilter_->safe_.img_[i].clone();
+    }
+  }
+
   return true;
 }
 
