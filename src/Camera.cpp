@@ -11,12 +11,17 @@ namespace rovio{
     p1_ = 0.0; p2_ = 0.0; s1_ = 0.0; s2_ = 0.0; s3_ = 0.0; s4_ = 0.0;
     K_.setIdentity();
     type_ = DistortionModel::RADTAN;
+    //DS
+    valid_radius_ = std::numeric_limits<double>::max();
   };
 
   Camera::~Camera(){};
 
   bool Camera::loadCalibrationFromFile(const std::string &filename) {
     CameraCalibration calibration;
+    std::cout << "Raw config file: " << filename << std::endl;
+    //force using DS model
+    // std::string fn = "/home/groove/GX/maplab_ws/maplab-rovio-ds.yaml";
     calibration.loadFromFile(filename);
     return setCalibration(calibration);
   }
@@ -65,6 +70,19 @@ namespace rovio{
       std::cout << "Set distortion parameters (fov) to: w(" << k1_ << ")"
                 << std::endl;
       break;
+
+    case DistortionModel::DS:
+      CHECK_EQ(calibration.distortionParams_.size(),
+               NUM_DISTORTION_MODEL_PARAMS[static_cast<int>(type_)]);
+
+      k1_ = calibration.distortionParams_[0];
+      k2_ = calibration.distortionParams_[1];
+      std::cout << "Set distortion parameters (Radtan) to: k1(" << k1_
+                << "), k2(" << k2_ << ")" 
+		<< std::endl;
+      break;
+
+
     default:
       std::cout << "ERROR: unknown camera Model detected! (model: "
                 << static_cast<int>(type_) << ")" << std::endl;
@@ -233,6 +251,54 @@ namespace rovio{
     }
   }
 
+  void Camera::distortDoubleSphere(const Eigen::Vector2d& in, Eigen::Vector2d& out) const{
+
+      const double x2 = in(0) * in(0);
+      const double y2 = in(1) * in(1);
+
+      if((x2 + y2) < 1e-16){
+        out(0) = in(0);
+        out(1) = in(1);
+        return;
+      }
+
+      const double d1 = std::sqrt(x2 + y2 + 1.0);
+      const double d2 = std::sqrt(x2 + y2 + (k1_*d1 + 1.0)*(k1_*d1 + 1.0));
+      const double scaling = 1.0f/(k2_*d2 + (1-k2_)*(k1_*d1+1.0));
+
+      out(0) = in(0) * scaling;
+      out(1) = in(1) * scaling;
+  }
+
+  void Camera::distortDoubleSphere(const Eigen::Vector2d& in, Eigen::Vector2d& out, Eigen::Matrix2d& J) const{
+    const double x2 = in(0) * in(0);
+    const double y2 = in(1) * in(1);
+
+    if((x2 + y2) < 1e-16){
+      out(0) = in(0);
+      out(1) = in(1);
+      J.setIdentity();
+      return;
+    }
+
+    const double d1 = std::sqrt(x2 + y2 + 1.0);
+    const double d2 = std::sqrt(x2 + y2 + (k1_*d1 + 1.0)*(k1_*d1 + 1.0));
+    const double s = 1.0f/(k2_*d2 + (1-k2_)*(k1_*d1+1.0));
+
+    out(0) = in(0) * s;
+    out(1) = in(1) * s;
+
+    const double d1dx = in(0)/d1;
+    const double d1dy = in(1)/d1;
+    const double d2dx = (in(0) + d1dx*k1_*(d1*k1_ + 1.0))/(d2);
+    const double d2dy = (in(1) + d1dy*k1_*(d1*k1_ + 1.0))/(d2);
+
+    J(0,0) = -in(0)*(d2dx*k2_ - d1dx*k1_*(k2_ - 1.0))*s*s + s;
+    J(0,1) = -s*s*in(0)*(d2dy*k2_ - d1dy*k1_*(k2_ - 1.0));
+    J(1,0) = -s*s*in(1)*(d2dx*k2_ - d1dx*k1_*(k2_ - 1.0));
+    J(1,1) = -in(1)*(d2dy*k2_ - d1dy*k1_*(k2_ - 1.0))*s*s + s;
+  }
+
   void Camera::distort(const Eigen::Vector2d& in, Eigen::Vector2d& out) const{
     switch(type_){
       case DistortionModel::RADTAN:
@@ -243,6 +309,10 @@ namespace rovio{
         break;
       case DistortionModel::FOV:
         distortFov(in,out);
+        break;
+      //DS
+      case DistortionModel::DS:
+        distortDoubleSphere(in,out);
         break;
       default:
         LOG(FATAL);
@@ -260,6 +330,10 @@ namespace rovio{
         break;
       case DistortionModel::FOV:
         distortFov(in,out,J);
+        break;
+      //DS
+      case DistortionModel::DS:
+        distortDoubleSphere(in,out,J);
         break;
       default:
         LOG(FATAL);

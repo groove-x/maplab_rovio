@@ -136,7 +136,9 @@ class ImagePyramid{
    * @param detectionThreshold - Detection threshold of the used cv::FastFeatureDetector.
    *                             See http://docs.opencv.org/trunk/df/d74/classcv_1_1FastFeatureDetector.html
    */
-  void detectFastCorners(FeatureCoordinatesVec & candidates, int l, int detectionThreshold) const{
+  //DS
+  // void detectFastCorners(FeatureCoordinatesVec & candidates, int l, int detectionThreshold) const{
+  void detectFastCorners(FeatureCoordinatesVec & candidates, int l, int detectionThreshold, double valid_radius = std::numeric_limits<double>::max()) const{
     std::vector<cv::KeyPoint> keypoints;
 #if (CV_MAJOR_VERSION < 3)
     cv::FastFeatureDetector feature_detector_fast(detectionThreshold, true);
@@ -147,6 +149,16 @@ class ImagePyramid{
 #endif
     candidates.reserve(candidates.size()+keypoints.size());
     for (auto it = keypoints.cbegin(), end = keypoints.cend(); it != end; ++it) {
+
+      //DS
+      const double x_dist = it->pt.x - imgs_[l].cols/2.0;
+      const double y_dist = it->pt.y - imgs_[l].rows/2.0;
+      const double max_valid_dist = valid_radius*std::min(imgs_[l].cols, imgs_[l].rows);
+
+      if((x_dist*x_dist + y_dist*y_dist) > (max_valid_dist*max_valid_dist)){
+        continue;
+      }
+
       candidates.push_back(
               levelTranformCoordinates(FeatureCoordinates(cv::Point2f(it->pt.x, it->pt.y)),l,0));
     }

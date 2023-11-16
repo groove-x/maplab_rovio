@@ -46,6 +46,13 @@ class Camera{
    * */
   DistortionModel type_;
 
+
+  //@{
+  /** \brief Radius (as ratio of images shortest side) within which features can be initalized. */
+  double valid_radius_;
+  //@}
+
+
   //@{
   /** \brief Distortion Parameter. */
   double k1_,k2_,k3_,k4_,k5_,k6_;
@@ -122,6 +129,26 @@ class Camera{
    *   @param J   - Jacobian matrix of the distortion process (input to output).
    */
   void distortFov(const Eigen::Vector2d& in, Eigen::Vector2d& out, Eigen::Matrix2d& J) const;
+
+
+
+  /** \brief Distorts a point on the unit plane (in camera coordinates) according to the Double Sphere distortion model.
+   *
+   *   @param in  - Undistorted point coordinates on the unit plane (in camera coordinates).
+   *   @param out - Distorted point coordinates on the unit plane (in camera coordinates).
+   */
+  void distortDoubleSphere(const Eigen::Vector2d& in, Eigen::Vector2d& out) const;
+
+  /** \brief Distorts a point on the unit plane (in camera coordinates) according to the Double Sphere distortion model
+   *         and outputs additionally the corresponding jacobian matrix (input to output).
+   *
+   *   @param in  - Undistorted point coordinates on the unit plane (in camera coordinates).
+   *   @param out - Distorted point coordinates on the unit plane (in camera coordinates).
+   *   @param J   - Jacobian matrix of the distortion process (input to output).
+   */
+  void distortDoubleSphere(const Eigen::Vector2d& in, Eigen::Vector2d& out, Eigen::Matrix2d& J) const;
+
+
 
   /** \brief Distorts a point on the unit plane, according to the set distortion model (#ModelType) and to the set
    *         distortion coefficients.

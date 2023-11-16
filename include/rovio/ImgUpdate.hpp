@@ -1036,7 +1036,9 @@ ImgOutlierDetection<typename FILTERSTATE::mtState>,false>{
         const double t1 = (double) cv::getTickCount();
         candidates_.clear();
         for(int l=endLevel_;l<=startLevel_;l++){
-          meas.aux().pyr_[camID].detectFastCorners(candidates_,l,fastDetectionThreshold_);
+          //DS
+          // meas.aux().pyr_[camID].detectFastCorners(candidates_,l,fastDetectionThreshold_);
+          meas.aux().pyr_[camID].detectFastCorners(candidates_,l,fastDetectionThreshold_, mpMultiCamera_->cameras_[camID].valid_radius_);
         }
 
         for (FeatureCoordinates& candidate : candidates_) {

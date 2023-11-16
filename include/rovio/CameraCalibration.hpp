@@ -44,6 +44,7 @@ enum class DistortionModel {
   RADTAN,   //!< Radial tangential distortion model.
   EQUIDIST, //!< Equidistant distortion model.
   FOV,      //!< Field of view model.
+  DS,
   NUM       //!< NOT A DISTORTION MODEL!
 };
 
@@ -53,12 +54,16 @@ static constexpr size_t NUM_DISTORTION_MODELS =
 const std::array<size_t, NUM_DISTORTION_MODELS> NUM_DISTORTION_MODEL_PARAMS = {
     {/*RADTAN (k1, k2, p1, p2, k3)*/ 5u,
      /*EQUIDIST (k1, k2, k3, k4)*/ 4u,
-     /*FOV (w)*/ 1u}};
+     /*FOV (w)*/ 1u,
+     /*DS (k1, k2)*/ 2u,
+    }};
 
 const std::array<std::string, NUM_DISTORTION_MODELS> DISTORTION_MODEL_NAME = {
     {/*RADTAN*/ "plumb_bob",
-     /*EQUIDIST*/ "equidistant"
-     /*FOV*/ "fov"}};
+     /*EQUIDIST*/ "equidistant",
+     /*FOV*/ "fov",
+     /*DS*/ "ds"
+    }};
 
 // YAML keywords.
 static const std::string CAMERA_MATRIX = "camera_matrix";
@@ -157,6 +162,16 @@ struct CameraCalibration {
    * coefficients.
    */
   void loadFovDistortion(const std::string &calibration_yaml_file);
+
+  /** \brief Loads and sets the distortion parameter {k1, k2} for
+   * the Fov distortion model from yaml-file.
+   *   @param filename - Path to the yaml-file, containing the distortion
+   * coefficients.
+   */
+  void loadDoubleSphereDistortion(const std::string &calibration_yaml_file);
+
+
+
 
   /** \brief Loads and sets the intrinsic parameter matrix K_ from yaml-file.
    *

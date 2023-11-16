@@ -97,6 +97,19 @@ void CameraCalibration::loadFovDistortion(
   distortionParams_[0] = config[DIST_COEFFS][DATA][0].as<double>();
 }
 
+void CameraCalibration::loadDoubleSphereDistortion(
+    const std::string &calibration_yaml_file) {
+  CHECK(!calibration_yaml_file.empty());
+  YAML::Node config = YAML::LoadFile(calibration_yaml_file);
+
+  distortionModel_ = DistortionModel::DS;
+  distortionParams_.resize(getNumDistortionParam());
+
+  distortionParams_[0] = config[DIST_COEFFS][DATA][0].as<double>();
+  distortionParams_[1] = config[DIST_COEFFS][DATA][1].as<double>();
+}
+
+
 void CameraCalibration::loadCameraMatrix(
     const std::string &calibration_yaml_file) {
   CHECK(!calibration_yaml_file.empty());
