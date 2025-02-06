@@ -11,7 +11,7 @@ add_definitions(-DROVIO_NCAM=${ROVIO_NCAM})
 add_definitions(-DROVIO_NLEVELS=${ROVIO_NLEVELS})
 add_definitions(-DROVIO_PATCHSIZE=${ROVIO_PATCHSIZE})
 add_definitions(-DROVIO_NPOSE=${ROVIO_NPOSE})
-add_definitions(-std=c++11)
+add_definitions(-std=c++14)
 
 add_subdirectory(lightweight_filtering)
 
@@ -149,17 +149,14 @@ if(CATKIN_ENABLE_TESTING)
 	#add_subdirectory(gtest gtest)
 	enable_testing()
 	include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
-	add_executable(test_patch src/test_patch.cpp src/Camera.cpp src/FeatureCoordinates.cpp src/FeatureDistance.cpp)
-	target_link_libraries(test_patch gtest_main gtest pthread ${PROJECT_NAME} ${catkin_LIBRARIES} ${YamlCpp_LIBRARIES} ${glog_catkin_LIBRARIES} )
-	add_test(test_patch test_patch)
+	catkin_add_gtest(test_patch src/test_patch.cpp src/Camera.cpp src/FeatureCoordinates.cpp src/FeatureDistance.cpp)
+	target_link_libraries(test_patch gtest_main gtest pthread ${GMOCK_MAIN_LIBRARIES} ${PROJECT_NAME} ${catkin_LIBRARIES} ${YamlCpp_LIBRARIES} ${glog_catkin_LIBRARIES} )
 
-	add_executable(test_mlp src/test_mlp.cpp src/Camera.cpp src/FeatureCoordinates.cpp src/FeatureDistance.cpp)
+	catkin_add_gtest(test_mlp src/test_mlp.cpp src/Camera.cpp src/FeatureCoordinates.cpp src/FeatureDistance.cpp)
 	target_link_libraries(test_mlp gtest_main gtest pthread ${PROJECT_NAME} ${catkin_LIBRARIES} ${YamlCpp_LIBRARIES} ${glog_catkin_LIBRARIES})
-	add_test(test_mlp test_mlp)
 
-	add_executable(test_llu src/test_localization_landmark_update.cpp)
-  target_link_libraries(test_llu gtest_main gtest pthread ${PROJECT_NAME} ${catkin_LIBRARIES} ${YamlCpp_LIBRARIES} ${glog_catkin_LIBRARIES})
-  add_test(test_llu test_llu)
+	catkin_add_gtest(test_llu src/test_localization_landmark_update.cpp)
+	target_link_libraries(test_llu gtest_main gtest pthread ${PROJECT_NAME} ${catkin_LIBRARIES} ${YamlCpp_LIBRARIES} ${glog_catkin_LIBRARIES})
 endif()
 
 # Setting for make install
